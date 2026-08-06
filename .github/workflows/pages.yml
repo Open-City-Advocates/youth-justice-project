@@ -26,7 +26,11 @@ jobs:
       - name: Setup Hugo
         uses: peaceiris/actions-hugo@v3
         with:
-          hugo-version: latest   # pin to e.g. '0.150.0' for reproducible builds
+          # Pinned, not 'latest': the templates use hugo.Data and the config uses
+          # languageCode, both of which are version-sensitive. With 'latest', a
+          # future Hugo release could break the live site with no code change.
+          # Keep this in step with the HUGO_VERSION build variable on Cloudflare.
+          hugo-version: '0.164.0'
           extended: true
       - name: Configure Pages
         id: pages

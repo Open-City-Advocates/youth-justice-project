@@ -1,4 +1,9 @@
-# GitHub Pages deployment (active)
+# GitHub Pages deployment (being replaced — rollback only)
+
+> **Superseded by `DEPLOY-WORKERS.md`.** The site is migrating to Cloudflare
+> Workers. This path stays live and unchanged as the rollback until that cutover
+> is confirmed, then gets deleted along with the workflow and `static/CNAME`.
+
 
 Push to `main` → GitHub Actions builds with Hugo and publishes to Pages.
 Workflow: `.github/workflows/pages.yml`. No SSH key, no secrets.

@@ -12,3 +12,12 @@ uglyURLs = true
 
 [markup.goldmark.renderer]
   unsafe = true
+
+# The templates use hugo.Data (site.Data was deprecated in Hugo v0.156.0), so an
+# older Hugo fails with a cryptic template error. This block only emits a WARN
+# and still exits 0, so it is a declaration, not a gate -- the actual gate is
+# scripts/check-hugo-version.mjs, which "npm run build" runs first.
+[module]
+  [module.hugoVersion]
+    min = "0.156.0"
+    extended = true

@@ -88,7 +88,13 @@ Open `data/news.yaml` and add a block at the top:
 
 ## Deploy
 
-Push to `main`. GitHub Actions builds the site and publishes it to GitHub Pages at
-https://youthjusticeproject.org/ — see `DEPLOY-PAGES.md` for details.
+Push to `main`. The site is mid-migration from GitHub Pages to Cloudflare Workers:
+
+- **Cloudflare Workers** — the new target. See `DEPLOY-WORKERS.md`, which covers
+  the required `HUGO_VERSION` build variable and the DNS cutover.
+- **GitHub Pages** — still serving https://youthjusticeproject.org/ and kept as
+  the rollback until the cutover is confirmed. See `DEPLOY-PAGES.md`.
+
+Both lanes build from `main`, and both are pinned to the same Hugo version.
 
 > Note: this project supersedes the earlier `YJP-Zensical/` folder, which can be deleted.

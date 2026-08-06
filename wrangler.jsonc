@@ -1,0 +1,27 @@
+{
+  // The Worker name here MUST match the Worker name in the Cloudflare dashboard,
+  // or Workers Builds fails before it deploys.
+  "name": "youth-justice-project",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-06",
+
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+
+    // The site builds with uglyURLs, so every internal link, every <link
+    // rel="canonical">, and all 42 sitemap entries are real ".html" paths, and
+    // published testimony URLs are cited off-site. Cloudflare's default
+    // ("auto-trailing-slash") 307-redirects /policy.html -> /policy, which would
+    // put a redirect in front of every one of those URLs. "none" serves them
+    // verbatim with a 200, exactly as GitHub Pages did, and still returns a real
+    // 404 for paths that do not exist.
+    "html_handling": "none",
+
+    // "none" leaves the bare root unmapped (/ would 404), so the root -- and
+    // only the root -- is handed to src/index.js, which serves index.html
+    // without a redirect. Every other path is served directly from assets and
+    // never invokes Worker code.
+    "run_worker_first": ["/"]
+  }
+}

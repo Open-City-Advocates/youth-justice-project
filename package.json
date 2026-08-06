@@ -1,0 +1,13 @@
+{
+  "name": "youth-justice-project",
+  "private": true,
+  "description": "Youth Justice Project site — Hugo build deployed to Cloudflare Workers static assets.",
+  "scripts": {
+    "build": "node scripts/check-hugo-version.mjs && hugo --gc --minify",
+    "preview": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "wrangler": "^4.28.1"
+  }
+}
