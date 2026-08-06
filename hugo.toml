@@ -20,4 +20,6 @@ uglyURLs = true
 [module]
   [module.hugoVersion]
     min = "0.156.0"
-    extended = true
+    # Not extended: no SCSS/Sass and no assets/ pipeline, so the standard build
+    # is enough. Cloudflare's build image installs standard Hugo.
+    extended = false

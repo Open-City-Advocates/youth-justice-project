@@ -1,4 +1,5 @@
 // Fail the build loudly and early if Hugo is too old for these templates.
+// Version floor only -- see the note at the bottom on why Extended is not required.
 //
 // The templates use hugo.Data, which landed in Hugo v0.156.0 when site.Data was
 // deprecated. Cloudflare's Workers Builds image ships an older Hugo by default
@@ -16,7 +17,7 @@ const MIN_STR = MIN.join(".");
 
 function fail(message) {
   console.error(`\nBUILD STOPPED: ${message}\n`);
-  console.error(`This site requires Hugo Extended >= ${MIN_STR}.`);
+  console.error(`This site requires Hugo >= ${MIN_STR}.`);
   console.error(
     "On Cloudflare Workers Builds, set the build variable HUGO_VERSION",
   );
@@ -49,8 +50,11 @@ for (let i = 0; i < 3; i++) {
   }
 }
 
-if (!/extended/.test(output)) {
-  fail(`this Hugo build is not the Extended edition (found ${foundStr}).`);
-}
+// Deliberately NOT requiring the Extended edition. Extended only adds SCSS/Sass
+// transpilation and WebP encoding; this site has no assets/ pipeline, no .scss
+// anywhere, and ships a plain static/site.css. Cloudflare's build image installs
+// standard Hugo, and requiring Extended failed the build for a feature the site
+// never uses. If an SCSS pipeline is ever added, reinstate the check here AND
+// flip extended back to true in hugo.toml.
 
-console.log(`Hugo ${foundStr} (extended) satisfies the >= ${MIN_STR} floor.`);
+console.log(`Hugo ${foundStr} satisfies the >= ${MIN_STR} floor.`);
