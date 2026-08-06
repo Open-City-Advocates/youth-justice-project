@@ -1,11 +1,15 @@
 # Cloudflare Workers deployment
 
-Migration target, replacing GitHub Pages. `DEPLOY-PAGES.md` documents the old
-path, which stays live as the rollback until the cutover is confirmed.
+**Live.** The apex and `www` are served by this Worker as of 2026-08-06.
+`DEPLOY-PAGES.md` documents the old GitHub Pages path, still enabled as the
+rollback until this has held for a few days.
 
-The repo side of this is already committed: `wrangler.jsonc`, `src/index.js`,
-`package.json`, and `scripts/check-hugo-version.mjs`. What remains is dashboard
-and DNS configuration.
+Repo side: `wrangler.jsonc`, `src/index.js`, `package.json`, and
+`scripts/check-hugo-version.mjs`.
+
+Note the repo now lives at `Open-City-Advocates/youth-justice-project`
+(transferred from `anotherpanacea-eng`). Old remotes still redirect, but
+`git remote set-url` to the new owner.
 
 ## Cloudflare dashboard settings
 
@@ -16,10 +20,27 @@ In the Worker → Settings → Build:
 | Build command | `npm run build` | Runs the Hugo version gate, then `hugo --gc --minify`. |
 | Deploy command | `npx wrangler deploy` (default) | Reads `wrangler.jsonc` from the repo root. |
 | Root directory | *(leave blank)* | The config lives at the repo root. |
+| Build watch paths | *(leave blank)* | **See below — this one silently breaks auto-deploy.** |
 | Build variable | `HUGO_VERSION` = `0.164.0` | **Required.** See below. |
 
 The Worker's name in the dashboard must match `"name": "youth-justice-project"`
 in `wrangler.jsonc`, or the build fails before deploying.
+
+### Do not set build watch paths to `./public`
+
+This one cost real time. "Include paths" was set to `./public`, copied from the
+`"directory": "./public"` in `wrangler.jsonc` — but those two fields mean
+opposite things. Wrangler's `directory` is where the *built output* is read
+from. The watch path is matched against the *source files in a push*, and
+`/public/` is the first line of `.gitignore`, so no commit can ever touch it.
+
+Every push therefore matched nothing and was skipped. Builds only ran when
+triggered by hand, which looks exactly like a working pipeline until you notice
+the live site is stale. It was: the site served the history section unstyled for
+a while, because `site.css` had changed and no build had shipped it.
+
+Leave include and exclude paths **empty**. If a build does not appear after a
+push, check this field before anything else.
 
 ### HUGO_VERSION is not optional
 
@@ -37,6 +58,25 @@ never hit this because it installed a current Hugo.
 `scripts/check-hugo-version.mjs` now runs before Hugo and fails with a message
 that names `HUGO_VERSION`, so this cannot recur silently. Confirm in the build
 log that the version you asked for is the version that ran.
+
+### Hugo Extended is NOT required
+
+An earlier version of the gate also demanded the Extended edition, which failed
+the build with `not the Extended edition (found 0.164.0)` even though the
+version floor was satisfied. Cloudflare's image installs standard Hugo.
+
+Extended only adds SCSS/Sass transpilation and WebP encoding. This site has no
+`assets/` pipeline, no `.scss` anywhere, and ships a plain `static/site.css`, so
+the standard build is correct. If an SCSS pipeline is ever added, reinstate the
+check in `scripts/check-hugo-version.mjs` and flip `extended` back to `true` in
+`hugo.toml`.
+
+### Harmless build-log noise
+
+`npm warn allow-scripts` for `esbuild` and `workerd` (skipped postinstall
+scripts) does not affect the deploy — `wrangler deploy` completes normally.
+`Skipping build output cache as it's not supported for your project` is also
+expected.
 
 ## Why the asset routing is set the way it is
 
@@ -56,6 +96,58 @@ hands the root — and only the root — to `src/index.js`, which serves
 `index.html` without a redirect. Every other path is served straight from assets
 and never invokes Worker code.
 
+Worth knowing: for the first few seconds after a deploy, a couple of assets 404
+while the manifest propagates. Re-check before concluding a file failed to
+upload.
+
+`npx wrangler deploy` from a workstation is a usable fallback if Workers Builds
+is ever wedged — it needs `CLOUDFLARE_API_TOKEN` with Account -> Workers Scripts
+-> Edit, bypasses CI entirely, and does not need a git push. Use it sparingly:
+a hand deploy is how the live site drifted out of sync with `main` once already.
+
+Note that `workers_dev` is not set in `wrangler.jsonc`, so wrangler enables the
+`*.workers.dev` URL by default. That was wanted during migration. Now that the
+cutover is done, consider setting `"workers_dev": false` so the site is not also
+served from a second public hostname.
+
+## DNS cutover — done 2026-08-06
+
+How it ended up, so the live config is written down:
+
+- **Apex** `youthjusticeproject.org` — a **Custom Domain** on the Worker
+  (Settings → Domains & Routes). Cloudflare wrote the DNS record and issued the
+  certificate itself.
+- **`www`** — a **proxied `AAAA` record pointing at `100::`** (a reserved
+  discard address; nothing is ever actually sent there, the record only exists
+  so Cloudflare will answer for the name), plus a route
+  `*.youthjusticeproject.org/*` on the Worker.
+
+So `www` **serves the site** rather than redirecting to the apex. That is fine:
+`baseURL` is the apex, and every page emits `<link rel="canonical">` and
+`og:url` pointing at the apex, so search engines and social cards consolidate
+there. If one canonical hostname is ever wanted, add a Redirect Rule from
+`www.youthjusticeproject.org` to the apex preserving path and query — Redirect
+Rules run before Worker routes, so it takes precedence over the wildcard.
+
+The wildcard route is broader than `www`: any future subdomain given a proxied
+record will also be served by this Worker. Scope it to
+`www.youthjusticeproject.org/*` if that is not wanted.
+
+### Two traps hit during the cutover
+
+**The site went down between steps.** Deleting the apex record stops GitHub
+Pages instantly, and the Custom Domain has to be added before anything answers
+again. Do those two steps back to back. If the Custom Domain refuses, the
+one-record rollback is a **proxied CNAME** `@` → `anotherpanacea-eng.github.io`.
+
+**A stale negative DNS cache outlives the fix.** With no records, the zone's SOA
+sets a 30-minute negative TTL, so resolvers that queried during the outage keep
+returning "does not exist" well after the record is live. Verify with
+`dig +short @1.1.1.1 youthjusticeproject.org` or
+`curl --resolve`, not the browser.
+
+## Verification
+
 Measured with `wrangler dev` against the real build output:
 
 | Request | Result |
@@ -68,50 +160,10 @@ Measured with `wrangler dev` against the real build output:
 
 To re-run that check yourself: `npm run build`, then `npm run preview`.
 
-### Verified on the real edge, 2026-08-06
-
-Deployed straight from a workstation with `npx wrangler deploy` and checked at
-`https://youth-justice-project.joshua-ad8.workers.dev`: **all 49 deployed files
-return 200, with zero redirects on any `.html` page**, and a nonexistent path
-still returns a genuine 404. Worth knowing: for the first few seconds after a
-deploy, a couple of assets 404 while the manifest propagates. Re-check before
-concluding a file failed to upload.
-
-That local `wrangler deploy` path is also a usable fallback if Workers Builds is
-ever wedged — it needs `CLOUDFLARE_API_TOKEN` with Account -> Workers Scripts ->
-Edit, and it bypasses CI entirely. It does not need a git push.
-
-Note that `workers_dev` is not set in `wrangler.jsonc`, so wrangler enables the
-`*.workers.dev` URL by default. That is wanted during migration. After the
-cutover, consider setting `"workers_dev": false` so the site is not also served
-from a second public hostname.
-
-## DNS cutover
-
-Nameservers are already Cloudflare, so DNS changes take effect in seconds — you
-are not waiting on propagation again. Right now the apex and `www` are
-**proxied records pointing at GitHub Pages** (confirmed live: responses carry
-both `server: cloudflare` and `x-github-request-id`).
-
-1. **Verify on the `*.workers.dev` URL first.** Click through the homepage,
-   Policy, News, Members, Contact, and a few `docs/` pages. GitHub Pages keeps
-   serving production the whole time, so there is no time pressure.
-2. **Delete the existing apex and `www` records** in the Cloudflare DNS panel.
-   Whatever their type, a Custom Domain cannot be created on a hostname that
-   already has a record. (Do not go looking for the GitHub IPs
-   `185.199.108–111.153` specifically — because the records are proxied, the
-   panel may show either those or a CNAME to `anotherpanacea-eng.github.io`.)
-3. **Add the Custom Domain.** Worker → Settings → Domains & Routes → Add →
-   Custom domain → `youthjusticeproject.org`. Cloudflare creates the record and
-   issues the certificate, pointing straight at the Worker with no origin.
-   **This is the cutover.** Check the site over `https://` immediately after —
-   certificate issuance is quick but there can be a brief SSL-error window.
-4. **Handle `www`.** Custom Domains match hostnames exactly, so a Worker on the
-   apex will not receive `www` requests. Keep the apex canonical (it is what
-   `baseURL` and every canonical tag already say), then redirect `www` to it:
-   add a **proxied** `AAAA` record for `www` pointing at `100::` (a reserved
-   originless placeholder — requests never reach it), plus a Redirect Rule from
-   `www.youthjusticeproject.org` to the apex, preserving path and query.
+Confirmed the same way against the live apex and `www` after cutover: 200 on the
+homepage and deep `.html` paths with no redirects, a real 404 for missing paths,
+and `server: cloudflare` with **no `x-github-request-id`** — that missing header
+is the proof traffic is reaching the Worker and not GitHub Pages.
 
 Nothing in the repo hardcodes the hostname except `baseURL`, which is already
 `https://youthjusticeproject.org/` — no change needed there.
