@@ -68,6 +68,24 @@ Measured with `wrangler dev` against the real build output:
 
 To re-run that check yourself: `npm run build`, then `npm run preview`.
 
+### Verified on the real edge, 2026-08-06
+
+Deployed straight from a workstation with `npx wrangler deploy` and checked at
+`https://youth-justice-project.joshua-ad8.workers.dev`: **all 49 deployed files
+return 200, with zero redirects on any `.html` page**, and a nonexistent path
+still returns a genuine 404. Worth knowing: for the first few seconds after a
+deploy, a couple of assets 404 while the manifest propagates. Re-check before
+concluding a file failed to upload.
+
+That local `wrangler deploy` path is also a usable fallback if Workers Builds is
+ever wedged — it needs `CLOUDFLARE_API_TOKEN` with Account -> Workers Scripts ->
+Edit, and it bypasses CI entirely. It does not need a git push.
+
+Note that `workers_dev` is not set in `wrangler.jsonc`, so wrangler enables the
+`*.workers.dev` URL by default. That is wanted during migration. After the
+cutover, consider setting `"workers_dev": false` so the site is not also served
+from a second public hostname.
+
 ## DNS cutover
 
 Nameservers are already Cloudflare, so DNS changes take effect in seconds — you
