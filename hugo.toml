@@ -1,7 +1,12 @@
 baseURL = "https://youthjusticeproject.org/"
-languageCode = "en-us"
+locale = "en-us"
 title = "Youth Justice Project"
 enableRobotsTXT = true
+
+# Tags are display metadata on the policy/document cards, not navigable archives,
+# and /docs/ has no section landing page. Do not publish or advertise empty
+# taxonomy, term, or section pages.
+disableKinds = ["taxonomy", "term", "section"]
 
 # Emit flat .html filenames (policy.html, data.html ...) to match the current live site,
 # so no existing links break when you cut over.

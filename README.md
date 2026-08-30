@@ -38,8 +38,9 @@ yjp-hugo/
 │  ├─ partials/              # head, header (nav), footer  <- shared chrome
 │  ├─ index.html             # home body
 │  └─ _default/*.html        # members, data, policy, news, contact bodies
+├─ src/index.js              # Worker root-route handler
+├─ wrangler.jsonc            # Cloudflare Workers static-assets config
 ├─ static/site.css           # your stylesheet
-├─ static/CNAME              # custom-domain marker for GitHub Pages
 └─ public/                   # BUILD OUTPUT (generated; do not edit or commit)
 ```
 
@@ -88,13 +89,8 @@ Open `data/news.yaml` and add a block at the top:
 
 ## Deploy
 
-Push to `main`. The site is mid-migration from GitHub Pages to Cloudflare Workers:
-
-- **Cloudflare Workers** — the new target. See `DEPLOY-WORKERS.md`, which covers
-  the required `HUGO_VERSION` build variable and the DNS cutover.
-- **GitHub Pages** — still serving https://youthjusticeproject.org/ and kept as
-  the rollback until the cutover is confirmed. See `DEPLOY-PAGES.md`.
-
-Both lanes build from `main`, and both are pinned to the same Hugo version.
+Push to `main`. Cloudflare Workers Builds is the deployment target. See
+`DEPLOY-WORKERS.md` for the required `HUGO_VERSION` build variable, routing
+details, and local fallback procedure.
 
 > Note: this project supersedes the earlier `YJP-Zensical/` folder, which can be deleted.
