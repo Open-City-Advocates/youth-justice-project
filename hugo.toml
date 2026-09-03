@@ -3,14 +3,18 @@ locale = "en-us"
 title = "Youth Justice Project"
 enableRobotsTXT = true
 
-# Tags are display metadata on the policy/document cards, not navigable archives,
-# and /docs/ has no section landing page. Do not publish or advertise empty
-# taxonomy, term, or section pages.
-disableKinds = ["taxonomy", "term", "section"]
-
 # Emit flat .html filenames (policy.html, data.html ...) to match the current live site,
 # so no existing links break when you cut over.
 uglyURLs = true
+
+# Tags are display metadata on the policy/document cards, not navigable archives,
+# and /docs/ has no section landing page. Keep their existing XML feeds for route
+# compatibility, but do not publish HTML taxonomy, term, or section pages or add
+# them to the sitemap.
+[outputs]
+  section = ["RSS"]
+  taxonomy = ["RSS"]
+  term = ["RSS"]
 
 [params]
   description = "The Youth Justice Project unites DC's youth defenders, legal advocates, and allied organizations to confront racial injustice in the city's juvenile legal system and build a system rooted in young people's families and communities."

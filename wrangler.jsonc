@@ -10,8 +10,9 @@
     "binding": "ASSETS",
 
     // The site builds with uglyURLs, so every internal link, every <link
-    // rel="canonical">, and all 42 sitemap entries are real ".html" paths, and
-    // published testimony URLs are cited off-site. Cloudflare's default
+    // rel="canonical">, and every sitemap entry is a real ".html" path (except
+    // the canonical homepage "/"), and published testimony URLs are cited
+    // off-site. Cloudflare's default
     // ("auto-trailing-slash") 307-redirects /policy.html -> /policy, which would
     // put a redirect in front of every one of those URLs. "none" serves them
     // verbatim with a 200, exactly as GitHub Pages did, and still returns a real

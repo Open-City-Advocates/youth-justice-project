@@ -155,7 +155,7 @@ Measured with `wrangler dev` against the real build output:
 | `/` | 200 (homepage) |
 | all 25 built `.html` pages | 200, no redirects |
 | `/site.css`, `/site.js`, `/og-image.png`, `/favicon.svg` | 200 |
-| `/robots.txt`, `/sitemap.xml`, `/index.xml`, both PDFs | 200 |
+| `/robots.txt`, `/sitemap.xml`, `/index.xml`, the retained section/taxonomy feeds, both PDFs | 200 |
 | a path that does not exist | 404 |
 
 To re-run that check yourself: `npm run build`, then `npm run preview`.
@@ -178,6 +178,9 @@ owner can disable it in Repo Settings → Pages.
 ## Sitemap hygiene
 
 Tags are display metadata on document cards, not navigable archive links, and
-`/docs/` has no section landing page. `hugo.toml` therefore disables the
-`taxonomy`, `term`, and `section` output kinds. The sitemap now advertises only
-rendered pages instead of the former 14 taxonomy/section URLs that returned 404.
+`/docs/` has no section landing page. `hugo.toml` therefore limits `section`,
+`taxonomy`, and `term` to RSS output: their existing feeds remain route-compatible,
+but no empty HTML archive pages are generated. `layouts/sitemap.xml` lists only
+the canonical home URL and regular pages, excluding the former 14 taxonomy/section
+HTML URLs that returned 404. `npm run build` runs the route inventory check, which
+asserts both that split and the retained feed set.
