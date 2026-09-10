@@ -1,6 +1,15 @@
 - year: '2026'
-  count: 13 items
+  count: 14 items
   items:
+  - date: Sep 10, 2026
+    title: Youth Opportunity and Justice Priorities for the Next D.C. Administration
+    by: Youth Justice Project
+    type: Open letter
+    tags:
+    - Youth justice
+    - Mayoral transition
+    url: docs/2026-09-10-youth-opportunity-justice-priorities.html
+    external: false
   - date: Jul 2026
     title: 'IRAA/Second Look and the YRA: What Are They?'
     by: Free Minds
