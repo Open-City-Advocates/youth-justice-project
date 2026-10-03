@@ -7,12 +7,16 @@
 // "can't evaluate field Data in type interface {}" -- an error that says nothing
 // about versions. This turns that into a message that names the actual fix.
 //
+// hugo.toml also sets `locale`, which replaced `languageCode` in Hugo v0.158.0.
+// An older Hugo ignores it silently and the RSS <language> element disappears,
+// so the floor is 0.158.0.
+//
 // hugo.toml declares the same floor under [module.hugoVersion], but Hugo only
 // emits a warning for it and still exits 0, so it cannot serve as the gate.
 
 import { execFileSync } from "node:child_process";
 
-const MIN = [0, 156, 0];
+const MIN = [0, 158, 0];
 const MIN_STR = MIN.join(".");
 
 function fail(message) {

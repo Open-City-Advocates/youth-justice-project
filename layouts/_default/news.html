@@ -12,7 +12,7 @@
 <section class="section-sm">
   <div class="wrap">
     <div class="news-list">
-{{ range site.Data.news }}
+{{ range hugo.Data.news }}
       <a class="news-item" href="{{ .url }}">
         <div class="nidate">{{ .date }}</div>
         <div>

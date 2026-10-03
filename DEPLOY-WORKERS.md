@@ -1,8 +1,8 @@
 # Cloudflare Workers deployment
 
-**Live.** The apex and `www` are served by this Worker as of 2026-08-06.
-`DEPLOY-PAGES.md` documents the old GitHub Pages path, still enabled as the
-rollback until this has held for a few days.
+**Live.** The apex and `www` are served by this Worker as of 2026-08-06. The
+repository-local GitHub Pages rollback lane was retired on 2026-10-03 after the
+cutover held and live routing was re-verified.
 
 Repo side: `wrangler.jsonc`, `src/index.js`, `package.json`, and
 `scripts/check-hugo-version.mjs`.
@@ -52,8 +52,9 @@ executing "main" at <hugo>: can't evaluate field Data in type interface {}
 
 That is a version error wearing a template error's clothes. Cloudflare's build
 image ships **Hugo 0.147.7** by default; the templates use `hugo.Data`, which
-landed in **0.156.0** when `site.Data` was deprecated. The GitHub Pages workflow
-never hit this because it installed a current Hugo.
+landed in **0.156.0** when `site.Data` was deprecated, and `hugo.toml` sets
+`locale`, which needs **0.158.0**. The version gate enforces 0.158.0. The former GitHub Pages
+workflow never hit this because it installed a current Hugo.
 
 `scripts/check-hugo-version.mjs` now runs before Hugo and fails with a message
 that names `HUGO_VERSION`, so this cannot recur silently. Confirm in the build
@@ -82,8 +83,8 @@ expected.
 
 `hugo.toml` sets `uglyURLs = true`, so the build emits flat files (`policy.html`,
 `docs/2023-active-testimony.html`) and every internal link, every
-`<link rel="canonical">`, and all 39 sitemap entries are real `.html` paths.
-Published testimony URLs are also cited off-site.
+`<link rel="canonical">`, and every published sitemap entry is a real `.html`
+path. Published testimony URLs are also cited off-site.
 
 Cloudflare's default asset routing (`auto-trailing-slash`) **307-redirects**
 `/policy.html` → `/policy`, which would put a redirect in front of every one of
@@ -137,8 +138,10 @@ record will also be served by this Worker. Scope it to
 
 **The site went down between steps.** Deleting the apex record stops GitHub
 Pages instantly, and the Custom Domain has to be added before anything answers
-again. Do those two steps back to back. If the Custom Domain refuses, the
-one-record rollback is a **proxied CNAME** `@` → `anotherpanacea-eng.github.io`.
+again. Do those two steps back to back. During the cutover, the one-record
+rollback was a proxied CNAME to GitHub Pages. That rollback no longer exists:
+the Pages workflow is retired, so GitHub Pages holds only a frozen copy of the
+site from its last deploy. Do not point DNS back at it.
 
 **A stale negative DNS cache outlives the fix.** With no records, the zone's SOA
 sets a 30-minute negative TTL, so resolvers that queried during the outage keep
@@ -155,7 +158,7 @@ Measured with `wrangler dev` against the real build output:
 | `/` | 200 (homepage) |
 | all 25 built `.html` pages | 200, no redirects |
 | `/site.css`, `/site.js`, `/og-image.png`, `/favicon.svg` | 200 |
-| `/robots.txt`, `/sitemap.xml`, `/index.xml`, both PDFs | 200 |
+| `/robots.txt`, `/sitemap.xml`, `/index.xml`, the retained section/taxonomy feeds, both PDFs | 200 |
 | a path that does not exist | 404 |
 
 To re-run that check yourself: `npm run build`, then `npm run preview`.
@@ -168,26 +171,19 @@ is the proof traffic is reaching the Worker and not GitHub Pages.
 Nothing in the repo hardcodes the hostname except `baseURL`, which is already
 `https://youthjusticeproject.org/` — no change needed there.
 
-## After the cutover holds
+## Retired GitHub Pages rollback
 
-Leave GitHub Pages enabled for a few days as the rollback. Once you are
-confident:
+The repository-local rollback lane was removed on 2026-10-03: the Pages workflow,
+`static/CNAME`, and the obsolete Pages runbook are no longer present. This does
+not change the repository's hosted Pages setting. If it is still enabled, an
+owner can disable it in Repo Settings → Pages.
 
-- Disable Pages in repo Settings → Pages.
-- Delete `.github/workflows/pages.yml` so it stops building for no reason.
-- Delete `static/CNAME` (a GitHub Pages marker; harmless on Workers, where it
-  just serves a stray `/CNAME` file).
-- Delete `DEPLOY-PAGES.md`.
+## Sitemap hygiene
 
-## Known issue, pre-existing and unrelated to this migration
-
-The sitemap advertises 39 URLs but the build produces 25 pages. The other 14 are
-taxonomy and section pages (`/tags/*.html`, `/tags/index.html`,
-`/categories/index.html`, `/docs/index.html`) that have no layout, so Hugo lists
-them without rendering them — the source of the `found no layout file for "html"
-for kind "taxonomy"/"section"/"term"` build warnings.
-
-**These already 404 on GitHub Pages today**, so Workers changes nothing here.
-Worth fixing separately, and it is a real either/or: add the missing layouts so
-the pages exist, or exclude those kinds from the build so the sitemap stops
-telling search engines about URLs that do not resolve.
+Tags are display metadata on document cards, not navigable archive links, and
+`/docs/` has no section landing page. `hugo.toml` therefore limits `section`,
+`taxonomy`, and `term` to RSS output: their existing feeds remain route-compatible,
+but no empty HTML archive pages are generated. `layouts/sitemap.xml` lists only
+the canonical home URL and regular pages, excluding the former 14 taxonomy/section
+HTML URLs that returned 404. `npm run build` runs the route inventory check, which
+asserts both that split and the retained feed set.

@@ -1,11 +1,20 @@
 baseURL = "https://youthjusticeproject.org/"
-languageCode = "en-us"
+locale = "en-us"
 title = "Youth Justice Project"
 enableRobotsTXT = true
 
 # Emit flat .html filenames (policy.html, data.html ...) to match the current live site,
 # so no existing links break when you cut over.
 uglyURLs = true
+
+# Tags are display metadata on the policy/document cards, not navigable archives,
+# and /docs/ has no section landing page. Keep their existing XML feeds for route
+# compatibility, but do not publish HTML taxonomy, term, or section pages or add
+# them to the sitemap.
+[outputs]
+  section = ["RSS"]
+  taxonomy = ["RSS"]
+  term = ["RSS"]
 
 [params]
   description = "The Youth Justice Project unites DC's youth defenders, legal advocates, and allied organizations to confront racial injustice in the city's juvenile legal system and build a system rooted in young people's families and communities."
@@ -14,12 +23,13 @@ uglyURLs = true
   unsafe = true
 
 # The templates use hugo.Data (site.Data was deprecated in Hugo v0.156.0), so an
-# older Hugo fails with a cryptic template error. This block only emits a WARN
+# older Hugo fails with a cryptic template error. The `locale` key above needs
+# Hugo v0.158.0; an older Hugo ignores it silently. This block only emits a WARN
 # and still exits 0, so it is a declaration, not a gate -- the actual gate is
 # scripts/check-hugo-version.mjs, which "npm run build" runs first.
 [module]
   [module.hugoVersion]
-    min = "0.156.0"
+    min = "0.158.0"
     # Not extended: no SCSS/Sass and no assets/ pipeline, so the standard build
     # is enough. Cloudflare's build image installs standard Hugo.
     extended = false
