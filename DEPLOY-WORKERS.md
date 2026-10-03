@@ -1,7 +1,7 @@
 # Cloudflare Workers deployment
 
 **Live.** The apex and `www` are served by this Worker as of 2026-08-06. The
-repository-local GitHub Pages rollback lane was retired on 2026-08-30 after the
+repository-local GitHub Pages rollback lane was retired on 2026-10-03 after the
 cutover held and live routing was re-verified.
 
 Repo side: `wrangler.jsonc`, `src/index.js`, `package.json`, and
@@ -52,7 +52,8 @@ executing "main" at <hugo>: can't evaluate field Data in type interface {}
 
 That is a version error wearing a template error's clothes. Cloudflare's build
 image ships **Hugo 0.147.7** by default; the templates use `hugo.Data`, which
-landed in **0.156.0** when `site.Data` was deprecated. The former GitHub Pages
+landed in **0.156.0** when `site.Data` was deprecated, and `hugo.toml` sets
+`locale`, which needs **0.158.0**. The version gate enforces 0.158.0. The former GitHub Pages
 workflow never hit this because it installed a current Hugo.
 
 `scripts/check-hugo-version.mjs` now runs before Hugo and fails with a message
@@ -137,8 +138,10 @@ record will also be served by this Worker. Scope it to
 
 **The site went down between steps.** Deleting the apex record stops GitHub
 Pages instantly, and the Custom Domain has to be added before anything answers
-again. Do those two steps back to back. If the Custom Domain refuses, the
-one-record rollback is a **proxied CNAME** `@` → `anotherpanacea-eng.github.io`.
+again. Do those two steps back to back. During the cutover, the one-record
+rollback was a proxied CNAME to GitHub Pages. That rollback no longer exists:
+the Pages workflow is retired, so GitHub Pages holds only a frozen copy of the
+site from its last deploy. Do not point DNS back at it.
 
 **A stale negative DNS cache outlives the fix.** With no records, the zone's SOA
 sets a 30-minute negative TTL, so resolvers that queried during the outage keep
@@ -170,7 +173,7 @@ Nothing in the repo hardcodes the hostname except `baseURL`, which is already
 
 ## Retired GitHub Pages rollback
 
-The repository-local rollback lane was removed on 2026-08-30: the Pages workflow,
+The repository-local rollback lane was removed on 2026-10-03: the Pages workflow,
 `static/CNAME`, and the obsolete Pages runbook are no longer present. This does
 not change the repository's hosted Pages setting. If it is still enabled, an
 owner can disable it in Repo Settings → Pages.

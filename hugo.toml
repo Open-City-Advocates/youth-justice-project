@@ -23,12 +23,13 @@ uglyURLs = true
   unsafe = true
 
 # The templates use hugo.Data (site.Data was deprecated in Hugo v0.156.0), so an
-# older Hugo fails with a cryptic template error. This block only emits a WARN
+# older Hugo fails with a cryptic template error. The `locale` key above needs
+# Hugo v0.158.0; an older Hugo ignores it silently. This block only emits a WARN
 # and still exits 0, so it is a declaration, not a gate -- the actual gate is
 # scripts/check-hugo-version.mjs, which "npm run build" runs first.
 [module]
   [module.hugoVersion]
-    min = "0.156.0"
+    min = "0.158.0"
     # Not extended: no SCSS/Sass and no assets/ pipeline, so the standard build
     # is enough. Cloudflare's build image installs standard Hugo.
     extended = false
