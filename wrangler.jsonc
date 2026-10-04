@@ -5,6 +5,12 @@
   "main": "src/index.js",
   "compatibility_date": "2026-08-06",
 
+  // The apex Custom Domain and the www route are managed in the dashboard.
+  // false turns off the extra *.workers.dev copy of the site and keeps
+  // deploys from touching the dashboard routes. preview_urls is left unset,
+  // so Cloudflare keeps its existing preview-link setting.
+  "workers_dev": false,
+
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",

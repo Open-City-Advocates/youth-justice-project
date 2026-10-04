@@ -106,10 +106,9 @@ is ever wedged — it needs `CLOUDFLARE_API_TOKEN` with Account -> Workers Scrip
 -> Edit, bypasses CI entirely, and does not need a git push. Use it sparingly:
 a hand deploy is how the live site drifted out of sync with `main` once already.
 
-Note that `workers_dev` is not set in `wrangler.jsonc`, so wrangler enables the
-`*.workers.dev` URL by default. That was wanted during migration. Now that the
-cutover is done, consider setting `"workers_dev": false` so the site is not also
-served from a second public hostname.
+`wrangler.jsonc` sets `"workers_dev": false` (since 2026-10-03), so the site is
+served only at the apex and `www`. The `*.workers.dev` copy used during the
+migration is off.
 
 ## DNS cutover — done 2026-08-06
 
