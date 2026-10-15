@@ -4,8 +4,11 @@
 repository-local GitHub Pages rollback lane was retired on 2026-10-03 after the
 cutover held and live routing was re-verified.
 
-Repo side: `wrangler.jsonc`, `src/index.js`, `package.json`, and
-`scripts/check-hugo-version.mjs`.
+Repo side: `wrangler.jsonc`, `src/index.js`, `package.json`, and `.node-version`.
+
+The site has been built with Astro since October 2026 (it was Hugo before).
+The Worker, routes, and output folder did not change: Astro writes to the same
+`./public` directory Hugo did.
 
 Note the repo now lives at `Open-City-Advocates/youth-justice-project`
 (transferred from `anotherpanacea-eng`). Old remotes still redirect, but
@@ -17,11 +20,11 @@ In the Worker → Settings → Build:
 
 | Setting | Value | Why |
 |---|---|---|
-| Build command | `npm run build` | Runs the Hugo version gate, then `hugo --gc --minify`. |
+| Build command | `npm run build` | Runs `astro build`, then the route inventory check. |
 | Deploy command | `npx wrangler deploy` (default) | Reads `wrangler.jsonc` from the repo root. |
 | Root directory | *(leave blank)* | The config lives at the repo root. |
 | Build watch paths | *(leave blank)* | **See below — this one silently breaks auto-deploy.** |
-| Build variable | `HUGO_VERSION` = `0.164.0` | **Required.** See below. |
+| Build variables | *(none needed)* | `HUGO_VERSION` is left over from the Hugo build; it is harmless and can be deleted. |
 
 The Worker's name in the dashboard must match `"name": "youth-justice-project"`
 in `wrangler.jsonc`, or the build fails before deploying.
@@ -42,35 +45,20 @@ a while, because `site.css` had changed and no build had shipped it.
 Leave include and exclude paths **empty**. If a build does not appear after a
 push, check this field before anything else.
 
-### HUGO_VERSION is not optional
+### Node version comes from `.node-version`
 
-The first build failed with:
+Astro 7 needs Node 22.22 or newer. Cloudflare's build image reads
+`.node-version` (it pins 24) and installs that Node before `npm run build`.
+Confirm in the build log that Node 24 ran: an older Node fails in `astro build`
+with an engine error, not silently.
 
-```
-executing "main" at <hugo>: can't evaluate field Data in type interface {}
-```
+### History: the Hugo version trap
 
-That is a version error wearing a template error's clothes. Cloudflare's build
-image ships **Hugo 0.147.7** by default; the templates use `hugo.Data`, which
-landed in **0.156.0** when `site.Data` was deprecated, and `hugo.toml` sets
-`locale`, which needs **0.158.0**. The version gate enforces 0.158.0. The former GitHub Pages
-workflow never hit this because it installed a current Hugo.
-
-`scripts/check-hugo-version.mjs` now runs before Hugo and fails with a message
-that names `HUGO_VERSION`, so this cannot recur silently. Confirm in the build
-log that the version you asked for is the version that ran.
-
-### Hugo Extended is NOT required
-
-An earlier version of the gate also demanded the Extended edition, which failed
-the build with `not the Extended edition (found 0.164.0)` even though the
-version floor was satisfied. Cloudflare's image installs standard Hugo.
-
-Extended only adds SCSS/Sass transpilation and WebP encoding. This site has no
-`assets/` pipeline, no `.scss` anywhere, and ships a plain `static/site.css`, so
-the standard build is correct. If an SCSS pipeline is ever added, reinstate the
-check in `scripts/check-hugo-version.mjs` and flip `extended` back to `true` in
-`hugo.toml`.
+Under Hugo, the build needed a `HUGO_VERSION` build variable, because
+Cloudflare's image shipped Hugo 0.147.7 and the templates needed 0.158.0; the
+failure looked like a template error (`can't evaluate field Data in type
+interface {}`). The Astro build installs its toolchain from `package-lock.json`,
+so there is no separately installed generator version to drift.
 
 ### Harmless build-log noise
 
@@ -81,7 +69,7 @@ expected.
 
 ## Why the asset routing is set the way it is
 
-`hugo.toml` sets `uglyURLs = true`, so the build emits flat files (`policy.html`,
+`astro.config.mjs` sets `build.format: "file"` (Hugo's `uglyURLs` before it), so the build emits flat files (`policy.html`,
 `docs/2023-active-testimony.html`) and every internal link, every
 `<link rel="canonical">`, and every published sitemap entry is a real `.html`
 path. Published testimony URLs are also cited off-site.
@@ -180,9 +168,10 @@ owner can disable it in Repo Settings → Pages.
 ## Sitemap hygiene
 
 Tags are display metadata on document cards, not navigable archive links, and
-`/docs/` has no section landing page. `hugo.toml` therefore limits `section`,
-`taxonomy`, and `term` to RSS output: their existing feeds remain route-compatible,
-but no empty HTML archive pages are generated. `layouts/sitemap.xml` lists only
-the canonical home URL and regular pages, excluding the former 14 taxonomy/section
-HTML URLs that returned 404. `npm run build` runs the route inventory check, which
+`/docs/` has no section landing page, so the site publishes no HTML tag or
+section pages. The XML feeds Hugo published for them (`index.xml`,
+`docs/index.xml`, `categories/index.xml`, `tags/index.xml`, and one
+`tags/<tag>/index.xml` per tag) are still built, by `src/lib/feeds.ts`, so those
+URLs keep working. `src/pages/sitemap.xml.ts` lists only the canonical home URL
+and the HTML pages. `npm run build` runs the route inventory check, which
 asserts both that split and the retained feed set.

@@ -1,4 +1,10 @@
-{{ define "main" }}
+---
+import Base from "../layouts/Base.astro";
+import { PAGES, news } from "../lib/site";
+
+const items = news();
+---
+<Base {...PAGES.news} nav="news">
 <!-- ============ PAGE HERO ============ -->
 <section class="page-hero">
   <div class="wrap">
@@ -12,21 +18,21 @@
 <section class="section-sm">
   <div class="wrap">
     <div class="news-list">
-{{ range hugo.Data.news }}
-      <a class="news-item" href="{{ .url }}">
-        <div class="nidate">{{ .date }}</div>
+{items.map((item) => (
+      <a class="news-item" href={item.url}>
+        <div class="nidate">{item.date}</div>
         <div>
-          <h3>{{ .title }}</h3>
-          <p>{{ .summary }}</p>
-          <div class="nitags"><span class="dtag type">{{ .type }}</span>{{ range .tags }}<span class="dtag">{{ . }}</span>{{ end }}</div>
+          <h3>{item.title}</h3>
+          <p>{item.summary}</p>
+          <div class="nitags"><span class="dtag type">{item.type}</span>{item.tags.map((tag) => <span class="dtag">{tag}</span>)}</div>
         </div>
         <div class="ngo">Read <span class="arw">&rarr;</span></div>
       </a>
-{{ end }}
+))}
     </div>
 
     <p class="note-strip">This is the start of the coalition's public news feed. As members file new letters, comments, and testimony, they will appear here and in <a class="textlink" href="policy.html">Policy &amp; Research</a>.</p>
   </div>
 </section>
 
-{{ end }}
+</Base>

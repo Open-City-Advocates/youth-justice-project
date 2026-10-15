@@ -1,3 +1,11 @@
+---
+interface Props {
+  nav?: string;
+}
+
+const { nav } = Astro.props;
+const current = (name: string) => (nav === name ? "page" : undefined);
+---
 <header class="site-head">
   <div class="wrap">
     <a class="brand" href="/index.html">
@@ -16,12 +24,14 @@
     <nav class="nav" id="primary-nav" aria-label="Primary">
       <a class="navlink" href="/index.html#about">About</a>
       <a class="navlink" href="/index.html#work">Our Work</a>
-      <a class="navlink" href="/members.html"{{ if eq .Params.nav "members" }} aria-current="page"{{ end }}>Members</a>
-      <a class="navlink" href="/policy.html"{{ if eq .Params.nav "policy" }} aria-current="page"{{ end }}>Policy &amp; Research</a>
-      <a class="navlink" href="/data.html"{{ if eq .Params.nav "data" }} aria-current="page"{{ end }}>Data</a>
-      <a class="navlink" href="/news.html"{{ if eq .Params.nav "news" }} aria-current="page"{{ end }}>News</a>
-      <a class="navlink" href="/contact.html"{{ if eq .Params.nav "contact" }} aria-current="page"{{ end }}>Contact</a>
-      {{ if eq .Params.nav "data" }}<a class="btn" href="/index.html">Home <span class="arw">→</span></a>{{ else }}<a class="btn" href="/data.html">Read the data <span class="arw">→</span></a>{{ end }}
+      <a class="navlink" href="/members.html" aria-current={current("members")}>Members</a>
+      <a class="navlink" href="/policy.html" aria-current={current("policy")}>Policy &amp; Research</a>
+      <a class="navlink" href="/data.html" aria-current={current("data")}>Data</a>
+      <a class="navlink" href="/news.html" aria-current={current("news")}>News</a>
+      <a class="navlink" href="/contact.html" aria-current={current("contact")}>Contact</a>
+      {nav === "data"
+        ? <a class="btn" href="/index.html">Home <span class="arw">→</span></a>
+        : <a class="btn" href="/data.html">Read the data <span class="arw">→</span></a>}
     </nav>
   </div>
 </header>
