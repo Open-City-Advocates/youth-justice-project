@@ -1,0 +1,40 @@
+---
+import { render } from "astro:content";
+import Base from "../../layouts/Base.astro";
+import { docs } from "../../lib/site";
+
+export async function getStaticPaths() {
+  return (await docs()).map((doc) => ({ params: { slug: doc.id }, props: { doc } }));
+}
+
+const { doc } = Astro.props;
+const { title, docdate, by, doctype, tags, description } = doc.data;
+const { Content } = await render(doc);
+---
+<Base title={title} description={description} path={`/docs/${doc.id}.html`}>
+<!-- ============ DOCUMENT HERO ============ -->
+<section class="page-hero">
+  <div class="wrap">
+    <span class="kicker">{doctype} · {docdate}</span>
+    <h1 style="margin-top:16px; max-width:26ch;">{title}</h1>
+    <p class="lede">{by}</p>
+    <div class="dtags" style="margin-top:18px;"><span class="dtag type">{doctype}</span>{tags.map((tag) => <span class="dtag">{tag}</span>)}</div>
+  </div>
+</section>
+
+<!-- ============ DOCUMENT BODY ============ -->
+<section class="section-sm">
+  <div class="wrap">
+    <article class="prose">
+<Content />
+    </article>
+
+    <!-- ===== CITE / SHARE ===== -->
+    <div class="cite-note" style="margin-top:52px;">
+      <h3>Citing or sharing this work?</h3>
+      <p>Coalition materials are free to quote and share with attribution. Cite as: <code>Youth Justice Project, {title}, {docdate}.</code></p>
+      <p style="margin-top:12px;"><a class="textlink" href="/policy.html">&larr; Back to the Policy &amp; Research archive</a></p>
+    </div>
+  </div>
+</section>
+</Base>

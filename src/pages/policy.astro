@@ -1,4 +1,11 @@
-{{ define "main" }}
+---
+import Base from "../layouts/Base.astro";
+import { PAGES, policy } from "../lib/site";
+
+const groups = policy();
+const topics = [...new Set(groups.flatMap((g) => g.items.flatMap((item) => item.tags)))].sort((a, b) => a.localeCompare(b));
+---
+<Base {...PAGES.policy} nav="policy">
 <!-- ============ PAGE HERO ============ -->
 <section class="page-hero">
   <div class="wrap">
@@ -35,13 +42,6 @@
       <div style="font-family:var(--font-mono); font-size:12px; color:var(--ink-mute);">Testimony, letters, statements, reports, and significant litigation from Open City Advocates and coalition members, 2009–2026.</div>
     </div>
 
-    {{ $topics := slice }}
-    {{ range $g := hugo.Data.policy }}
-      {{ range $g.items }}
-        {{ range .tags }}{{ $topics = $topics | append . }}{{ end }}
-      {{ end }}
-    {{ end }}
-    {{ $topics = $topics | uniq | sort }}
 
     <div class="archive-tools" data-archive-controls>
       <div class="archive-search">
@@ -56,36 +56,36 @@
           <span class="archive-control-label">Filter by topic</span>
           <div class="archive-topic-filters" role="group" aria-label="Filter archive by topic">
             <button type="button" class="archive-topic is-active" data-archive-topic="" aria-pressed="true">All topics</button>
-            {{ range $topics }}<button type="button" class="archive-topic" data-archive-topic="{{ . }}" aria-pressed="false">{{ . }}</button>{{ end }}
+            {topics.map((topic) => <button type="button" class="archive-topic" data-archive-topic={topic} aria-pressed="false">{topic}</button>)}
           </div>
         </div>
         <label class="archive-year-jump" for="archive-year-jump">
           <span class="archive-control-label">Jump to year</span>
           <select id="archive-year-jump" data-archive-year>
             <option value="">Choose a year</option>
-            {{ range $g := hugo.Data.policy }}<option value="{{ $g.year }}">{{ $g.year }}</option>{{ end }}
+            {groups.map((g) => <option value={g.year}>{g.year}</option>)}
           </select>
         </label>
       </div>
       <p class="archive-status" data-archive-status role="status" aria-live="polite"></p>
     </div>
 
-    {{ range $g := hugo.Data.policy }}
-    <div class="year-group" id="archive-year-{{ $g.year }}" data-year-group>
-      <div class="year-head"><span class="yr">{{ $g.year }}</span><span class="yc" data-year-count>{{ $g.count }}</span></div>
-{{ range $g.items }}
-      <a class="doc-row" href="{{ .url }}" data-archive-item data-topics="{{ delimit .tags "||" | lower }}" data-search="{{ printf "%s %s %s %s %s" .date .title .by .type (delimit .tags " ") | lower }}"{{ if .external }} target="_blank" rel="noopener"{{ end }}>
-        <div class="ddate">{{ .date }}</div>
+    {groups.map((g) => (
+    <div class="year-group" id={`archive-year-${g.year}`} data-year-group>
+      <div class="year-head"><span class="yr">{g.year}</span><span class="yc" data-year-count>{g.count}</span></div>
+{g.items.map((item) => (
+      <a class="doc-row" href={item.url} data-archive-item data-topics={item.tags.join("||").toLowerCase()} data-search={`${item.date} ${item.title} ${item.by} ${item.type} ${item.tags.join(" ")}`.toLowerCase()} target={item.external ? "_blank" : undefined} rel={item.external ? "noopener" : undefined}>
+        <div class="ddate">{item.date}</div>
         <div>
-          <div class="dttl">{{ .title }}</div>
-          <div class="dby">{{ .by }}</div>
-          <div class="dtags"><span class="dtag type">{{ .type }}</span>{{ range .tags }}<span class="dtag">{{ . }}</span>{{ end }}</div>
+          <div class="dttl">{item.title}</div>
+          <div class="dby">{item.by}</div>
+          <div class="dtags"><span class="dtag type">{item.type}</span>{item.tags.map((tag) => <span class="dtag">{tag}</span>)}</div>
         </div>
         <div class="dgo">Read <span class="arw">&rarr;</span></div>
       </a>
-{{ end }}
+))}
     </div>
-{{ end }}
+))}
 
     <div class="archive-empty" data-archive-empty hidden>
       <h3>No matching materials</h3>
@@ -117,4 +117,4 @@
     </div>
   </div>
 </section>
-{{ end }}
+</Base>

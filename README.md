@@ -1,60 +1,56 @@
-# Youth Justice Project — Hugo site
+# Youth Justice Project — Astro site
 
-The <https://youthjusticeproject.org/> site, rebuilt with [Hugo](https://gohugo.io)
-so the design is preserved but the shared chrome and the growing lists are no
-longer hand-maintained HTML.
+The <https://youthjusticeproject.org/> site, built with [Astro](https://astro.build)
+and served by a Cloudflare Worker.
 
-## Why Hugo (not Zensical)
-
-Zensical / MkDocs are documentation frameworks: they impose a docs shell (sidebar,
-TOC). This site is a designed editorial site, so it uses Hugo as a template-first
-generator — your original `site.css` and markup are the source of truth, and Hugo
-only adds shared layout + data-driven lists on top.
-
-## What changed vs. the hand-built site
-
-- **Header, nav, and footer are defined once** in `layouts/partials/`. Edit the nav
-  in one place instead of six files.
-- **The Policy/Research archive and the News feed are data-driven.** Items live in
-  `data/policy.yaml` and `data/news.yaml`. Add an entry = add a small YAML block;
-  the cards render themselves.
-- **The design is byte-for-byte the same** — the bespoke page bodies (hero, stat
-  cards, data cards, member grid, etc.) were ported verbatim into templates.
-- URLs stay flat (`policy.html`, `data.html`, …) via `uglyURLs`, so nothing that's
-  currently live breaks.
+The site was built with Hugo until October 2026. The move to Astro kept every
+published URL, the design, and the editing workflow below: the built HTML
+pages match the Hugo build tag for tag.
 
 ## Project layout
 
 ```
-yjp-hugo/
-├─ hugo.toml                 # config (baseURL, uglyURLs, site description)
-├─ content/                  # one thin file per page (front matter only)
-│  ├─ _index.md  members.md  data.md  policy.md  news.md  contact.md
+youth-justice-project/
+├─ astro.config.mjs          # site URL, flat .html output, folder names
+├─ content/docs/*.md         # testimony, letters, memos -> /docs/<name>.html
 ├─ data/
 │  ├─ policy.yaml            # the testimony/letters/reports archive (grouped by year)
 │  └─ news.yaml              # the news feed
-├─ layouts/
-│  ├─ _default/baseof.html   # page skeleton
-│  ├─ partials/              # head, header (nav), footer  <- shared chrome
-│  ├─ index.html             # home body
-│  └─ _default/*.html        # members, data, policy, news, contact bodies
-├─ src/index.js              # Worker root-route handler
+├─ src/
+│  ├─ layouts/Base.astro     # page skeleton and <head> (title, description, social cards)
+│  ├─ components/            # Header (nav) and Footer  <- shared chrome
+│  ├─ pages/                 # one file per page; docs/[slug].astro renders content/docs
+│  ├─ lib/site.ts            # page titles + descriptions, YAML loading
+│  ├─ lib/feeds.ts           # the RSS feeds kept from the Hugo site
+│  ├─ content.config.ts      # front matter fields for content/docs
+│  └─ index.js               # Worker root-route handler
+├─ static/                   # copied to the site as-is: site.css, site.js, images, PDFs
 ├─ wrangler.jsonc            # Cloudflare Workers static-assets config
-├─ static/site.css           # your stylesheet
 └─ public/                   # BUILD OUTPUT (generated; do not edit or commit)
 ```
 
-## Install Hugo
+`static/` and `public/` keep their Hugo-era meanings (Astro's defaults are the
+other way round; `astro.config.mjs` sets them), so the Worker config did not
+have to change.
 
-- **Windows (PC):** `winget install Hugo.Hugo.Extended`  (or `choco install hugo-extended`)
-- **Mac:** `brew install hugo`
+## Setup
+
+Node 22.22 or newer (`.node-version` pins 24 for Cloudflare's build). Then:
+
+```bash
+npm install
+```
 
 ## Build & preview
 
 ```bash
-hugo server        # live preview at http://localhost:1313
-hugo               # build static site into ./public
+npm run dev        # live preview at http://localhost:4321
+npm run build      # build into ./public, then check the sitemap and feeds
+npm run preview    # serve ./public through the Worker config (wrangler dev)
 ```
+
+`npm run preview` is the closest match to production: it serves real `.html`
+paths with no redirects, the way the live site does.
 
 ## Add a testimony / letter / report
 
@@ -74,6 +70,22 @@ year (or add a new year group at the top). Fields:
       external: true          # true opens in a new tab (use for offsite PDFs)
 ```
 
+To publish the full text on the site, add `content/docs/<name>.md` with this
+front matter and point the archive item's `url` at `docs/<name>.html`:
+
+```yaml
+---
+title: "B26-0526, the LEARNS Act"
+docdate: "May 6, 2026"
+by: "Joshua Miller · Open City Advocates"
+doctype: "Testimony"
+tags: ["Legislation", "Education in custody"]
+description: "One or two sentences for search results and social cards."
+---
+```
+
+The build fails with a clear message if one of those fields is missing.
+
 ## Add a news item
 
 Open `data/news.yaml` and add a block at the top:
@@ -89,8 +101,6 @@ Open `data/news.yaml` and add a block at the top:
 
 ## Deploy
 
-Push to `main`. Cloudflare Workers Builds is the deployment target. See
-`DEPLOY-WORKERS.md` for the required `HUGO_VERSION` build variable, routing
+Push to `main`. Cloudflare Workers Builds runs `npm run build` and deploys
+`./public`. See `DEPLOY-WORKERS.md` for the dashboard settings, routing
 details, and local fallback procedure.
-
-> Note: this project supersedes the earlier `YJP-Zensical/` folder, which can be deleted.

@@ -1,4 +1,8 @@
-{{ define "main" }}
+---
+import Base from "../layouts/Base.astro";
+import { PAGES } from "../lib/site";
+---
+<Base {...PAGES.data} nav="data">
 <!-- ============ PAGE HERO ============ -->
 <section class="page-hero">
   <div class="wrap">
@@ -133,4 +137,4 @@
     </div>
   </div>
 </section>
-{{ end }}
+</Base>
