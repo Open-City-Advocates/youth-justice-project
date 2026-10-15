@@ -33,7 +33,8 @@ document.documentElement.classList.add('js');
     if (!nav.contains(event.target) && !toggle.contains(event.target)) closeMenu();
   });
 
-  const desktop = window.matchMedia('(min-width: 981px)');
+  // Matches the header breakpoint in site.css (max-width: 1200px).
+  const desktop = window.matchMedia('(min-width: 1201px)');
   desktop.addEventListener('change', (event) => {
     if (event.matches) closeMenu();
   });
