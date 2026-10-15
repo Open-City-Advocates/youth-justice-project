@@ -1,6 +1,40 @@
 - year: '2026'
-  count: 14 items
+  count: 18 items
   items:
+  - date: Oct 7, 2026
+    title: Roundtable on DYRS's Fifth Rulemaking on Community Placement
+    by: Whitney Louchheim · Open City Advocates
+    type: Testimony
+    tags:
+    - DYRS oversight
+    url: docs/2026-10-07-oca-community-placement-testimony.pdf
+    external: true
+  - date: Oct 7, 2026
+    title: Roundtable on DYRS's Fifth Rulemaking on Community Placement
+    by: Magdalena Tsiongas · Council for Court Excellence
+    type: Testimony
+    tags:
+    - DYRS oversight
+    url: docs/2026-10-07-cce-community-placement-testimony.pdf
+    external: true
+  - date: Oct 7, 2026
+    title: Roundtable on DYRS's Fifth Rulemaking on Community Placement
+    by: William E. Mount · District of Columbia Juvenile Bar Association
+    type: Testimony
+    tags:
+    - DYRS oversight
+    - Right to counsel
+    url: docs/2026-10-07-jba-community-placement-oral-testimony.pdf
+    external: true
+  - date: Oct 2, 2026
+    title: Statement for the record — Roundtable on DYRS's Fifth Rulemaking on Community Placement
+    by: District of Columbia Juvenile Bar Association
+    type: Statement
+    tags:
+    - DYRS oversight
+    - Right to counsel
+    url: docs/2026-10-02-jba-community-placement-statement.pdf
+    external: true
   - date: Sep 10, 2026
     title: Youth Opportunity and Justice Priorities for the Next D.C. Administration
     by: Youth Justice Project
