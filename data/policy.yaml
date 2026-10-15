@@ -1,5 +1,5 @@
 - year: '2026'
-  count: 18 items
+  count: 19 items
   items:
   - date: Oct 7, 2026
     title: Roundtable on DYRS's Fifth Rulemaking on Community Placement
@@ -8,6 +8,14 @@
     tags:
     - DYRS oversight
     url: docs/2026-10-07-oca-community-placement-testimony.pdf
+    external: true
+  - date: Oct 7, 2026
+    title: Roundtable on DYRS's Fifth Rulemaking on Community Placement
+    by: Raymond Ngu · Open City Advocates
+    type: Testimony
+    tags:
+    - DYRS oversight
+    url: docs/2026-10-07-oca-ngu-community-placement-testimony.pdf
     external: true
   - date: Oct 7, 2026
     title: Roundtable on DYRS's Fifth Rulemaking on Community Placement
