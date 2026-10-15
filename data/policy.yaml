@@ -7,7 +7,7 @@
     type: Testimony
     tags:
     - DYRS oversight
-    url: https://lims.dccouncil.gov/Hearings/API/Public/DownloadAttachment/30B85927-FEAB-4595-BB9D-7866C53849C4
+    url: docs/2026-10-07-oca-community-placement-testimony.pdf
     external: true
   - date: Oct 7, 2026
     title: Roundtable on DYRS's Fifth Rulemaking on Community Placement
@@ -15,7 +15,7 @@
     type: Testimony
     tags:
     - DYRS oversight
-    url: https://lims.dccouncil.gov/Hearings/API/Public/DownloadAttachment/AB6706D6-5FCB-4082-A015-B0134B6C6FCD
+    url: docs/2026-10-07-cce-community-placement-testimony.pdf
     external: true
   - date: Oct 7, 2026
     title: Roundtable on DYRS's Fifth Rulemaking on Community Placement
@@ -24,7 +24,7 @@
     tags:
     - DYRS oversight
     - Right to counsel
-    url: https://lims.dccouncil.gov/Hearings/API/Public/DownloadAttachment/0749FDEE-E7BF-4CD4-9F6D-033EF1B2EBB9
+    url: docs/2026-10-07-jba-community-placement-oral-testimony.pdf
     external: true
   - date: Oct 2, 2026
     title: Statement for the record — Roundtable on DYRS's Fifth Rulemaking on Community Placement
@@ -33,7 +33,7 @@
     tags:
     - DYRS oversight
     - Right to counsel
-    url: https://lims.dccouncil.gov/Hearings/API/Public/DownloadAttachment/FF0E3831-DB0D-4717-A008-9DAA36B3D9CB
+    url: docs/2026-10-02-jba-community-placement-statement.pdf
     external: true
   - date: Sep 10, 2026
     title: Youth Opportunity and Justice Priorities for the Next D.C. Administration
